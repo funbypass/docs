@@ -5,12 +5,7 @@ description: "Understanding rate limits, thread limits, and quotas."
 
 ## Concurrency Limits
 
-Each user has a maximum number of concurrent tasks (threads) they can run simultaneously.
-
-| Key Type | Default Thread Limit |
-|----------|---------------------|
-| `FUN-` (balance) | 300 concurrent tasks |
-| `PKG-` (package) | Varies by package |
+Each user has a maximum number of concurrent tasks (threads) they can run simultaneously. The limit depends on your plan or package.
 
 If you exceed your thread limit, the API returns `ERROR_THREAD_THRESHOLD_EXCEEDED`.
 
@@ -33,12 +28,7 @@ For balance-based keys (`FUN-`):
 - Each solve costs **$0.00075** ($0.75 per 1,000)
 - Balance is deducted when the task starts
 - Failed tasks are **automatically refunded**
-- Refunds are batched and processed every 30 seconds
 - Use `POST /getBalance` to check your current balance
-
-<Tip>
-  The API also tracks "available balance" — your actual balance minus pending operations. This prevents overdraft when running many concurrent tasks.
-</Tip>
 
 ## Handling Rate Limit Errors
 

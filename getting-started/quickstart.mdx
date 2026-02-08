@@ -97,7 +97,7 @@ while True:
         print(f"Error: {result['errorCode']}")
         break
 
-    time.sleep(3)
+    time.sleep(0.5)
 ```
 
 ```javascript JavaScript
@@ -116,7 +116,7 @@ async function pollResult(taskId) {
       throw new Error(result.errorCode);
     }
 
-    await new Promise((r) => setTimeout(r, 3000));
+    await new Promise((r) => setTimeout(r, 500));
   }
 }
 
@@ -124,7 +124,7 @@ await pollResult(data.taskId);
 ```
 
 ```bash cURL
-# Poll every 3 seconds
+# Poll every 0.5 seconds
 curl https://api.funbypass.com/getTaskResult/TASK_ID_HERE
 ```
 </CodeGroup>

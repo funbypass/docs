@@ -39,7 +39,7 @@ class FunBypass {
     return data.taskId;
   }
 
-  async getTaskResult(taskId, interval = 3000, timeout = 300000) {
+  async getTaskResult(taskId, interval = 500, timeout = 300000) {
     const start = Date.now();
     while (Date.now() - start < timeout) {
       const resp = await fetch(`${this.baseUrl}/getTaskResult/${taskId}`);

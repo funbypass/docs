@@ -68,7 +68,7 @@ class FunBypass:
             raise Exception(f"{result['errorCode']}: {result['errorDescription']}")
         return result["taskId"]
 
-    def get_task_result(self, task_id: str, interval: float = 3, timeout: int = 300) -> str:
+    def get_task_result(self, task_id: str, interval: float = 0.5, timeout: int = 300) -> str:
         """Poll for task result. Returns the solved token."""
         elapsed = 0
         while elapsed < timeout:
@@ -144,7 +144,7 @@ class AsyncFunBypass:
                     if result["errorId"] == 0:
                         return result["solution"]["token"]
                     raise Exception(result["errorCode"])
-            await asyncio.sleep(3)
+            await asyncio.sleep(0.5)
 
         raise TimeoutError("Task timed out")
 

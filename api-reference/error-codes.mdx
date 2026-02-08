@@ -24,7 +24,7 @@ When an error occurs, the response includes:
 | `ERROR_PACKAGE_PAUSED` | 403 | Package is currently paused |
 | `ERROR_PACKAGE_EXPIRED` | 403 | Package subscription has expired |
 | `ERROR_ZERO_BALANCE` | 402 | Insufficient balance for the operation |
-| `ERROR_DATABASE_BALANCE` | 503 | Balance deduction failed (database issue) |
+| `ERROR_DATABASE_BALANCE` | 503 | Balance deduction failed temporarily |
 
 ## Validation Errors
 
@@ -62,13 +62,13 @@ When an error occurs, the response includes:
 
 | Error Code | HTTP | Description |
 |------------|------|-------------|
-| `ERROR_TASK_NOT_FOUND` | 404 | Task ID doesn't exist or has expired (60s TTL) |
+| `ERROR_TASK_NOT_FOUND` | 404 | Task ID doesn't exist or has expired |
 | `ERROR_TASK_EXCEPTION` | 500 | Internal error during task execution |
 | `ERROR_TASK_CANCELLED` | 500 | Task was cancelled due to an internal error |
 | `ERROR_TASK_TIMEOUT` | 504 | Task exceeded the 300-second total timeout |
 | `ERROR_SOLVE_TIMEOUT` | 504 | Solve phase exceeded the 120-second timeout |
 | `ERROR_CAPTCHA_UNSOLVABLE` | 403 | Failed to solve the CAPTCHA challenge |
-| `ERROR_PROCESSING_IMAGE` | 504 | Image classification timed out |
+| `ERROR_PROCESSING_IMAGE` | 504 | Processing timed out |
 
 ## Service Errors
 
@@ -76,9 +76,9 @@ When an error occurs, the response includes:
 |------------|------|-------------|
 | `ERROR_SERVICE_UNAVALIABLE` | 503 | Service is temporarily disabled |
 | `ERROR_TEMPLATE_NOT_FOUND` | 404 | No Arkose template found for this public key |
-| `ERROR_FINGERPRINT_UNAVAILABLE` | 503 | No fingerprints available in the database |
-| `ERROR_DATABASE_UNAVAILABLE` | 503 | MongoDB is temporarily unavailable |
-| `ERROR_INTERNAL_DATABASE` | 500 | Internal database error |
+| `ERROR_FINGERPRINT_UNAVAILABLE` | 503 | Service temporarily unavailable |
+| `ERROR_DATABASE_UNAVAILABLE` | 503 | Service temporarily unavailable |
+| `ERROR_INTERNAL_DATABASE` | 500 | Internal server error |
 
 ## Handling Errors
 

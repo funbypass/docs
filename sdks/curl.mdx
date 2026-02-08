@@ -149,7 +149,7 @@ TASK_ID=$(echo "$RESPONSE" | python3 -c "import sys,json; print(json.load(sys.st
 echo "Task created: $TASK_ID"
 
 # Poll for result
-for i in $(seq 1 100); do
+for i in $(seq 1 600); do
   RESULT=$(curl -s "$BASE_URL/getTaskResult/$TASK_ID")
   STATUS=$(echo "$RESULT" | python3 -c "import sys,json; print(json.load(sys.stdin)['status'])")
 
@@ -160,7 +160,7 @@ for i in $(seq 1 100); do
   fi
 
   echo "Status: $STATUS (attempt $i)"
-  sleep 3
+  sleep 0.5
 done
 
 echo "Timeout: task did not complete"
