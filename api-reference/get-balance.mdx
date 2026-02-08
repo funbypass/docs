@@ -1,0 +1,98 @@
+---
+title: Get Balance
+description: "Check your account balance."
+---
+
+## `POST /getBalance`
+
+Returns the current balance for a balance-based API key.
+
+## Request Body
+
+```json
+{
+  "clientKey": "FUN-your-api-key"
+}
+```
+
+## Parameters
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `clientKey` | string | Yes | Your API key |
+
+## Response
+
+### Success (200)
+
+```json
+{
+  "errorId": 0,
+  "balance": 12.50
+}
+```
+
+### Key Not Found (404)
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "ERROR_KEY_DOES_NOT_EXIST",
+  "errorDescription": "Client key does not exist."
+}
+```
+
+### Database Unavailable (503)
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "ERROR_DATABASE_UNAVAILABLE",
+  "errorDescription": "Database temporarily unavailable. Please try again."
+}
+```
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `errorId` | integer | `0` = success, `1` = error |
+| `balance` | number | Current balance in USD |
+| `errorCode` | string | Error code (only when `errorId: 1`) |
+| `errorDescription` | string | Human-readable error message |
+
+## Example
+
+<CodeGroup>
+```python Python
+import requests
+
+resp = requests.post("https://api.funbypass.com/getBalance", json={
+    "clientKey": "FUN-your-api-key"
+})
+
+data = resp.json()
+print(f"Balance: ${data['balance']}")
+```
+
+```javascript JavaScript
+const resp = await fetch("https://api.funbypass.com/getBalance", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ clientKey: "FUN-your-api-key" }),
+});
+
+const data = await resp.json();
+console.log(`Balance: $${data.balance}`);
+```
+
+```bash cURL
+curl -X POST https://api.funbypass.com/getBalance \
+  -H "Content-Type: application/json" \
+  -d '{"clientKey": "FUN-your-api-key"}'
+```
+</CodeGroup>
+
+<Note>
+  Balance reflects the last synced value. Pending deductions and refunds are batched every 30 seconds.
+</Note>

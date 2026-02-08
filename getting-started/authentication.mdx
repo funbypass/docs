@@ -1,0 +1,86 @@
+---
+title: Authentication
+description: "How API keys and authentication work in FunBypass."
+---
+
+## API Keys
+
+FunBypass uses API keys for authentication. Your key is passed in the request body as the `clientKey` field — there are no headers or bearer tokens required.
+
+### Key Types
+
+| Prefix | Type | Description |
+|--------|------|-------------|
+| `FUN-` | Balance-based | Pay-per-solve at $0.75/1,000 solves. Balance is deducted per task. |
+| `PKG-` | Package-based | Subscription packages with daily/hourly quotas or unlimited solves. |
+
+### Getting Your API Key
+
+1. Sign up at [app.funbypass.com](https://app.funbypass.com)
+2. Navigate to **Dashboard → Settings**
+3. Copy your API key
+
+<Warning>
+  Keep your API key secret. Do not expose it in client-side code or public repositories.
+</Warning>
+
+## Authentication Flow
+
+Every API request requires your `clientKey` in the request body:
+
+```json
+{
+  "clientKey": "FUN-your-api-key-here",
+  "task": { ... }
+}
+```
+
+The server validates your key against the database and checks:
+
+1. **Key existence** — The key must be registered
+2. **Account status** — Account must not be suspended
+3. **Package validity** — For `PKG-` keys, the package must be active and not expired
+4. **Balance/Quota** — Sufficient balance or remaining quota for the request
+
+## Balance-Based Keys (`FUN-`)
+
+- **Cost:** $0.75 per 1,000 solves ($0.00075 per solve)
+- Balance is deducted when a task starts processing
+- If the task fails, the balance is automatically refunded
+- Check your balance via the [`POST /getBalance`](/api-reference/get-balance) endpoint
+
+## Package-Based Keys (`PKG-`)
+
+Packages come in several types:
+
+| Type | Description |
+|------|-------------|
+| `unlimited` | No solve limit during the subscription period |
+| `daily` | Fixed number of solves per day, resets daily |
+| `hourly` | Fixed number of solves per hour, resets hourly |
+
+Package status can be `active`, `paused`, or `expired`. Only active packages can create tasks.
+
+## Error Responses
+
+If authentication fails, you'll receive one of these errors:
+
+| Error Code | Description |
+|------------|-------------|
+| `ERROR_KEY_DOES_NOT_EXIST` | API key not found |
+| `ERROR_ACCOUNT_SUSPENDED` | Account has been suspended |
+| `ERROR_PACKAGE_PAUSED` | Package is currently paused |
+| `ERROR_PACKAGE_EXPIRED` | Package subscription has expired |
+| `ERROR_ZERO_BALANCE` | Insufficient balance (balance-based keys) |
+| `ERROR_RATE_LIMIT_EXCEEDED` | Daily or hourly quota exceeded (package keys) |
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Create a Task" icon="plus" href="/api-reference/create-task">
+    Start solving CAPTCHAs with the createTask endpoint.
+  </Card>
+  <Card title="Check Balance" icon="wallet" href="/api-reference/get-balance">
+    Query your current balance programmatically.
+  </Card>
+</CardGroup>

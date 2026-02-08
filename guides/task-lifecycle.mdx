@@ -1,0 +1,105 @@
+---
+title: Task Lifecycle
+description: "How a CAPTCHA solving task flows from creation to completion."
+---
+
+## Overview
+
+Every solve request follows a predictable lifecycle. Understanding this flow helps you build robust integrations and handle edge cases.
+
+## Task Flow
+
+<Steps>
+  <Step title="Task Creation">
+    You send a `POST /createTask` request. The server validates your API key, task parameters, proxy format, and checks your balance or package quota. If everything is valid, a task ID (UUID) is returned and the task is queued for processing.
+  </Step>
+  <Step title="Validation">
+    The server performs deep validation:
+    - API key and account status
+    - Task type must be `FunCaptchaTask`
+    - Public key must be a valid UUID
+    - Proxy format and port validation
+    - Website template lookup
+    - Thread limit check (for balance-based users)
+  </Step>
+  <Step title="Fingerprint Generation">
+    A realistic browser fingerprint is selected or generated. Fingerprints are rotated every 7–10 solves to avoid detection. If you provide custom headers (User-Agent, etc.), the fingerprint is matched accordingly.
+  </Step>
+  <Step title="Session Initialization">
+    A TLS session is created through your proxy. The system fetches IP geolocation data to set the correct timezone and language, then generates the initial Arkose token.
+  </Step>
+  <Step title="Silent Pass Check">
+    If the Arkose token contains `sup=1`, no challenge is required — the token is returned immediately. This is the fastest path.
+  </Step>
+  <Step title="Challenge Solving">
+    If a challenge is required, the system:
+    1. Parses the challenge type, variant, and number of waves
+    2. For each wave: downloads the image, classifies it via AI, and submits the answer
+    3. Repeats until all waves are solved or a timeout occurs
+  </Step>
+  <Step title="Result Available">
+    Once solved, the result is stored with a 60-second TTL. Poll `GET /getTaskResult/{taskId}` to retrieve it.
+  </Step>
+</Steps>
+
+## Task Statuses
+
+| Status | Description |
+|--------|-------------|
+| `created` | Task accepted and queued |
+| `processing` | Task is being solved |
+| `ready` | Task completed (check `errorId` for success/failure) |
+| `failure` | Task failed with an error |
+
+## Timeouts
+
+| Phase | Timeout |
+|-------|---------|
+| Total task | 300 seconds |
+| Solve phase | 120 seconds |
+| Image classification | 10 seconds per image |
+| Result TTL | 60 seconds after completion |
+
+<Warning>
+  Results expire 60 seconds after completion. Make sure to poll frequently enough to retrieve your token before it expires.
+</Warning>
+
+## Balance & Refunds
+
+For balance-based users (`FUN-` keys):
+
+- Balance is deducted when the task starts processing
+- If the task fails for any reason (proxy error, timeout, unsolvable), the balance is **automatically refunded**
+- Refunds are processed in batches every 30 seconds
+
+## Polling Best Practices
+
+<Tip>
+  Poll every **3 seconds** for optimal results. Polling too frequently wastes resources; polling too slowly risks missing the result TTL.
+</Tip>
+
+```python
+import time
+
+def solve_captcha(client_key, task_params):
+    # Create task
+    resp = requests.post("https://api.funbypass.com/createTask", json={
+        "clientKey": client_key,
+        "task": task_params
+    })
+    task_id = resp.json()["taskId"]
+
+    # Poll with 3s interval
+    for _ in range(100):  # max ~5 minutes
+        result = requests.get(f"https://api.funbypass.com/getTaskResult/{task_id}").json()
+
+        if result["status"] == "ready":
+            if result["errorId"] == 0:
+                return result["solution"]["token"]
+            else:
+                raise Exception(result["errorCode"])
+
+        time.sleep(3)
+
+    raise TimeoutError("Task did not complete in time")
+```

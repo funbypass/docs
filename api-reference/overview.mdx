@@ -1,0 +1,61 @@
+---
+title: API Overview
+description: "Base URL, request format, and general API conventions."
+---
+
+## Base URL
+
+All API requests are made to:
+
+```
+https://api.funbypass.com
+```
+
+## Request Format
+
+All requests use **JSON** bodies with `Content-Type: application/json`.
+
+Authentication is done via the `clientKey` field in the request body — no headers or bearer tokens required.
+
+## Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/createTask` | Submit a new CAPTCHA solving task |
+| `GET` | `/getTaskResult/{taskId}` | Poll for a task's result |
+| `POST` | `/getBalance` | Check your account balance |
+
+## Response Format
+
+All responses are JSON with a consistent structure:
+
+```json
+{
+  "errorId": 0,
+  "taskId": "uuid",
+  "status": "created"
+}
+```
+
+- `errorId: 0` means success
+- `errorId: 1` means an error occurred — check `errorCode` and `errorDescription`
+
+## HTTP Status Codes
+
+| Code | Meaning |
+|------|---------|
+| `200` | Success or completed task |
+| `202` | Task is still processing |
+| `400` | Invalid request parameters |
+| `402` | Insufficient balance |
+| `403` | Forbidden (suspended, paused, unsolvable) |
+| `404` | Resource not found (key, task, template) |
+| `429` | Rate limit or thread limit exceeded |
+| `503` | Service temporarily unavailable |
+| `504` | Task or processing timeout |
+
+## Rate Limits
+
+- Default concurrent task limit: **300 per user**
+- Package users have quota-based limits (daily/hourly)
+- See [Rate Limits & Concurrency](/guides/rate-limits) for details

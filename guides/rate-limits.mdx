@@ -1,0 +1,71 @@
+---
+title: Rate Limits & Concurrency
+description: "Understanding rate limits, thread limits, and quotas."
+---
+
+## Concurrency Limits
+
+Each user has a maximum number of concurrent tasks (threads) they can run simultaneously.
+
+| Key Type | Default Thread Limit |
+|----------|---------------------|
+| `FUN-` (balance) | 300 concurrent tasks |
+| `PKG-` (package) | Varies by package |
+
+If you exceed your thread limit, the API returns `ERROR_THREAD_THRESHOLD_EXCEEDED`.
+
+## Package Quotas
+
+Package-based keys (`PKG-`) have quotas depending on the package type:
+
+| Package Type | Quota |
+|-------------|-------|
+| `unlimited` | No limit during subscription |
+| `daily` | Fixed solves per day (resets at midnight UTC) |
+| `hourly` | Fixed solves per hour (resets each hour) |
+
+Exceeding your quota returns `ERROR_RATE_LIMIT_EXCEEDED`.
+
+## Balance Protection
+
+For balance-based keys (`FUN-`):
+
+- Each solve costs **$0.00075** ($0.75 per 1,000)
+- Balance is deducted when the task starts
+- Failed tasks are **automatically refunded**
+- Refunds are batched and processed every 30 seconds
+- Use `POST /getBalance` to check your current balance
+
+<Tip>
+  The API also tracks "available balance" — your actual balance minus pending operations. This prevents overdraft when running many concurrent tasks.
+</Tip>
+
+## Handling Rate Limit Errors
+
+When you hit a rate limit, implement exponential backoff:
+
+```python
+import time
+import requests
+
+def create_task_with_retry(client_key, task, max_retries=5):
+    for attempt in range(max_retries):
+        resp = requests.post("https://api.funbypass.com/createTask", json={
+            "clientKey": client_key,
+            "task": task
+        })
+        data = resp.json()
+
+        if data.get("errorCode") == "ERROR_THREAD_THRESHOLD_EXCEEDED":
+            wait = 2 ** attempt
+            time.sleep(wait)
+            continue
+
+        return data
+
+    raise Exception("Max retries exceeded")
+```
+
+## Service Availability
+
+If the service is temporarily disabled, all task creation requests return `ERROR_SERVICE_UNAVALIABLE`. Monitor the [status page](https://app.funbypass.com/dashboard/status) for real-time availability.

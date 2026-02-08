@@ -1,0 +1,135 @@
+---
+title: Get Task Result
+description: "Poll for the result of a CAPTCHA solving task."
+---
+
+## `GET /getTaskResult/{taskId}`
+
+Retrieves the current status and result of a previously created task.
+
+## Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `taskId` | string (UUID) | The task ID returned by `createTask` |
+
+## Response
+
+### Processing (202)
+
+The task is still being solved. Continue polling.
+
+```json
+{
+  "errorId": 0,
+  "taskId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "status": "processing"
+}
+```
+
+### Solved Successfully (200)
+
+The CAPTCHA has been solved. The `solution.token` contains the Arkose token.
+
+```json
+{
+  "errorId": 0,
+  "solution": {
+    "token": "282d9a2536f.d"
+  },
+  "taskId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "status": "ready"
+}
+```
+
+### Completed with Error (200)
+
+The task completed but failed to solve.
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "ERROR_CAPTCHA_UNSOLVABLE",
+  "errorDescription": "Failed to solve the CAPTCHA challenge.",
+  "taskId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "status": "ready"
+}
+```
+
+### Task Not Found (404)
+
+The task ID doesn't exist or has expired.
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "ERROR_TASK_NOT_FOUND",
+  "errorDescription": "Task not found or has expired.",
+  "taskId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+}
+```
+
+### Task Failed (403)
+
+The task encountered a fatal error.
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "ERROR_TASK_EXCEPTION",
+  "errorDescription": "An internal error occurred.",
+  "taskId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "status": "failure"
+}
+```
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `errorId` | integer | `0` = success, `1` = error |
+| `errorCode` | string | Error code (only when `errorId: 1`) |
+| `errorDescription` | string | Human-readable error message |
+| `taskId` | string | The task UUID |
+| `status` | string | `processing`, `ready`, or `failure` |
+| `solution` | object | Contains the solved token (only on success) |
+| `solution.token` | string | The Arkose/FunCaptcha token |
+
+## Polling Strategy
+
+<Tip>
+  Poll every **3 seconds**. Results expire **60 seconds** after completion.
+</Tip>
+
+```python
+import time
+import requests
+
+def get_result(task_id, interval=3, max_attempts=100):
+    for _ in range(max_attempts):
+        resp = requests.get(f"https://api.funbypass.com/getTaskResult/{task_id}")
+        data = resp.json()
+
+        if data["status"] == "ready":
+            if data["errorId"] == 0:
+                return data["solution"]["token"]
+            raise Exception(f"{data['errorCode']}: {data['errorDescription']}")
+
+        if data["status"] == "failure":
+            raise Exception(f"{data['errorCode']}: {data['errorDescription']}")
+
+        time.sleep(interval)
+
+    raise TimeoutError("Polling timeout")
+```
+
+## Common Errors
+
+| Error Code | HTTP | Description |
+|------------|------|-------------|
+| `ERROR_TASK_NOT_FOUND` | 404 | Task expired or doesn't exist |
+| `ERROR_TASK_EXCEPTION` | 403 | Internal task failure |
+| `ERROR_CAPTCHA_UNSOLVABLE` | 403 | Could not solve the challenge |
+| `ERROR_PROXY_CONNECTION` | 503 | Proxy connection failed |
+| `ERROR_SOLVE_TIMEOUT` | 504 | Solve exceeded 120 seconds |
+| `ERROR_TASK_TIMEOUT` | 504 | Task exceeded 300 seconds |

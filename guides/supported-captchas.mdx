@@ -1,0 +1,72 @@
+---
+title: Supported CAPTCHAs
+description: "CAPTCHA types and variants supported by FunBypass."
+---
+
+## Supported Type
+
+FunBypass currently supports **Arkose Labs FunCaptcha** (`FunCaptchaTask`).
+
+## Challenge Types
+
+### Game Type 3 — Image Selection
+
+Multiple-choice image selection challenges. The user is shown a prompt and must select the correct image from a grid.
+
+- **Waves:** 1–5 per challenge
+- **Layout:** Grid-based with multiple options
+- **Example variants:** Various image classification tasks
+
+### Game Type 4 — 3D Interactive
+
+Interactive 3D challenges that require object manipulation.
+
+- **Waves:** 1–5 per challenge
+- **Difficulty levels:** Easy, Medium, Hard
+- **Example variants:**
+  - `3d_rollball_animalss` — Roll a ball to the correct animal
+  - `orbit_match_game` — Match orbiting objects
+
+### Silent Pass
+
+Some sessions receive a **silent pass** — no challenge is required. The token is returned immediately with `sup=1` in the token string. This is the fastest resolution path and requires no image classification.
+
+## How It Works
+
+1. The API generates a session with the target site's public key
+2. Arkose Labs decides whether to issue a challenge or a silent pass
+3. If a challenge is issued, our AI classifies each image and submits answers
+4. The solved token is returned to you
+
+## Template Support
+
+FunBypass maintains a database of **4,440+ Arkose templates** covering a wide range of target sites. Templates are matched by `websitePublicKey` and contain the configuration needed to generate valid sessions.
+
+<Info>
+  If you receive `ERROR_TEMPLATE_NOT_FOUND`, the target site's public key may not be in our database yet. Contact support to request it.
+</Info>
+
+## Task Parameters
+
+```json
+{
+  "type": "FunCaptchaTask",
+  "websiteURL": "https://example.com",
+  "websitePublicKey": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+  "websiteSubdomain": "client-api",
+  "proxy": "http://user:pass@ip:port",
+  "data": "{\"blob\": \"value\"}",
+  "enablePOW": true,
+  "headers": {
+    "user-agent": "Mozilla/5.0 ...",
+    "sec-ch-ua": "\"Chromium\";v=\"124\"",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "sec-ch-ua-mobile": "?0",
+    "accept-language": "en-US,en;q=0.9",
+    "document-referrer": "https://example.com/",
+    "document-title": "Page Title"
+  }
+}
+```
+
+See the [createTask endpoint](/api-reference/create-task) for full parameter documentation.

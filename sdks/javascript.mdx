@@ -1,0 +1,145 @@
+---
+title: JavaScript
+description: "JavaScript/Node.js integration examples for the FunBypass API."
+---
+
+## Node.js Example
+
+Using the built-in `fetch` API (Node.js 18+):
+
+```javascript
+class FunBypass {
+  constructor(clientKey) {
+    this.clientKey = clientKey;
+    this.baseUrl = "https://api.funbypass.com";
+  }
+
+  async getBalance() {
+    const resp = await fetch(`${this.baseUrl}/getBalance`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ clientKey: this.clientKey }),
+    });
+    const data = await resp.json();
+    if (data.errorId !== 0) throw new Error(data.errorCode);
+    return data.balance;
+  }
+
+  async createTask(taskParams) {
+    const resp = await fetch(`${this.baseUrl}/createTask`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        clientKey: this.clientKey,
+        task: { type: "FunCaptchaTask", ...taskParams },
+      }),
+    });
+    const data = await resp.json();
+    if (data.errorId !== 0) throw new Error(data.errorCode);
+    return data.taskId;
+  }
+
+  async getTaskResult(taskId, interval = 3000, timeout = 300000) {
+    const start = Date.now();
+    while (Date.now() - start < timeout) {
+      const resp = await fetch(`${this.baseUrl}/getTaskResult/${taskId}`);
+      const data = await resp.json();
+
+      if (data.status === "ready") {
+        if (data.errorId === 0) return data.solution.token;
+        throw new Error(data.errorCode);
+      }
+
+      if (data.status === "failure") {
+        throw new Error(data.errorCode || "UNKNOWN_ERROR");
+      }
+
+      await new Promise((r) => setTimeout(r, interval));
+    }
+    throw new Error("TIMEOUT");
+  }
+
+  async solve(taskParams) {
+    const taskId = await this.createTask(taskParams);
+    return this.getTaskResult(taskId);
+  }
+}
+
+// Usage
+const client = new FunBypass("FUN-your-api-key");
+
+// Check balance
+const balance = await client.getBalance();
+console.log(`Balance: $${balance}`);
+
+// Solve a CAPTCHA
+const token = await client.solve({
+  websiteURL: "https://example.com",
+  websitePublicKey: "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+  websiteSubdomain: "client-api",
+  proxy: "http://user:pass@1.2.3.4:8080",
+});
+console.log(`Token: ${token}`);
+```
+
+## Browser Example
+
+<Warning>
+  Never expose your API key in client-side code. Always proxy requests through your backend.
+</Warning>
+
+```javascript
+// Backend proxy endpoint (Express.js example)
+app.post("/api/solve-captcha", async (req, res) => {
+  const client = new FunBypass(process.env.FUNBYPASS_API_KEY);
+
+  try {
+    const token = await client.solve({
+      websiteURL: req.body.websiteURL,
+      websitePublicKey: req.body.websitePublicKey,
+      websiteSubdomain: req.body.websiteSubdomain,
+      proxy: req.body.proxy,
+    });
+    res.json({ token });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+```
+
+## Concurrent Solving
+
+Solve multiple CAPTCHAs in parallel:
+
+```javascript
+async function solveBatch(client, tasks, concurrency = 10) {
+  const results = [];
+  const queue = [...tasks];
+
+  const workers = Array.from({ length: concurrency }, async () => {
+    while (queue.length > 0) {
+      const task = queue.shift();
+      try {
+        const token = await client.solve(task);
+        results.push({ success: true, token });
+      } catch (err) {
+        results.push({ success: false, error: err.message });
+      }
+    }
+  });
+
+  await Promise.all(workers);
+  return results;
+}
+
+// Solve 50 CAPTCHAs with 10 concurrent workers
+const tasks = Array.from({ length: 50 }, () => ({
+  websiteURL: "https://example.com",
+  websitePublicKey: "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+  websiteSubdomain: "client-api",
+  proxy: "http://user:pass@1.2.3.4:8080",
+}));
+
+const results = await solveBatch(client, tasks, 10);
+console.log(`Solved: ${results.filter((r) => r.success).length}/${results.length}`);
+```

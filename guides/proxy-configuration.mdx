@@ -1,0 +1,75 @@
+---
+title: Proxy Configuration
+description: "How to configure proxies for CAPTCHA solving tasks."
+---
+
+## Why Proxies Are Required
+
+FunBypass requires a proxy for every task. The proxy is used to create the Arkose session from an IP address that matches your target use case. Using the right proxy is critical for success rates.
+
+## Proxy Format
+
+Proxies must follow this format:
+
+```
+protocol://username:password@ip:port
+```
+
+### Supported Protocols
+
+| Protocol | Example |
+|----------|---------|
+| HTTP | `http://user:pass@1.2.3.4:8080` |
+| SOCKS4 | `socks4://user:pass@1.2.3.4:1080` |
+| SOCKS5 | `socks5://user:pass@1.2.3.4:1080` |
+
+## Validation Rules
+
+The API validates your proxy before processing:
+
+- **Protocol** must be `http`, `socks4`, or `socks5`
+- **Port** must be between 1 and 65535
+- **Authentication** (username:password) is required
+- The proxy must be reachable within 3 seconds
+
+<Warning>
+  Invalid proxies will return an error immediately. Dead or slow proxies will cause `ERROR_PROXY_CONNECTION` after the connection timeout.
+</Warning>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use residential proxies">
+    Residential proxies have the highest success rates because they appear as real user connections. Datacenter proxies may be flagged by Arkose Labs.
+  </Accordion>
+  <Accordion title="Match proxy location to target">
+    Use proxies from the same region as your target users. The API automatically detects the proxy's geolocation and sets the correct timezone and language.
+  </Accordion>
+  <Accordion title="Rotate proxies">
+    Avoid using the same proxy for too many consecutive requests. Rotate across a pool of proxies to reduce detection risk.
+  </Accordion>
+  <Accordion title="Test proxy connectivity">
+    Before sending tasks, verify your proxy is working and has acceptable latency. High-latency proxies increase solve times.
+  </Accordion>
+</AccordionGroup>
+
+## Proxy Errors
+
+| Error Code | Description |
+|------------|-------------|
+| `ERROR_MISSING_PROXY` | No proxy provided in the task |
+| `ERROR_INVALID_PROXY_PROTOCOL` | Protocol is not http, socks4, or socks5 |
+| `ERROR_INVALID_PROXY_PORT` | Port is not in range 1–65535 |
+| `ERROR_INVALID_PROXY_AUTH` | Missing username or password |
+| `ERROR_INVALID_PROXY_FORMAT` | Proxy string doesn't match expected format |
+| `ERROR_PROXY_CONNECTION` | Could not connect through the proxy |
+
+## IP Geolocation
+
+When a task is processed, the API fetches geolocation data from the proxy's IP address to determine:
+
+- **Timezone offset** — Used in fingerprint generation
+- **Language** — Sets the `Accept-Language` header
+- **Region** — Matches browser locale settings
+
+This happens automatically — you don't need to configure it manually.

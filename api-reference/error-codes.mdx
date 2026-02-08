@@ -1,0 +1,140 @@
+---
+title: Error Codes
+description: "Complete reference of all API error codes."
+---
+
+## Error Response Format
+
+When an error occurs, the response includes:
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "ERROR_CODE_HERE",
+  "errorDescription": "Human-readable description."
+}
+```
+
+## Authentication Errors
+
+| Error Code | HTTP | Description |
+|------------|------|-------------|
+| `ERROR_KEY_DOES_NOT_EXIST` | 404 | API key not found or invalid |
+| `ERROR_ACCOUNT_SUSPENDED` | 403 | User account has been suspended |
+| `ERROR_PACKAGE_PAUSED` | 403 | Package is currently paused |
+| `ERROR_PACKAGE_EXPIRED` | 403 | Package subscription has expired |
+| `ERROR_ZERO_BALANCE` | 402 | Insufficient balance for the operation |
+| `ERROR_DATABASE_BALANCE` | 503 | Balance deduction failed (database issue) |
+
+## Validation Errors
+
+| Error Code | HTTP | Description |
+|------------|------|-------------|
+| `ERROR_MISSING_REQUEST_DATA` | 400 | Request payload is missing or empty |
+| `ERROR_TASK_NOT_SUPPORTED` | 400 | Task type is not `FunCaptchaTask` |
+| `ERROR_INVALID_PUBLIC_KEY` | 400 | Public key is not a valid UUID |
+| `ERROR_MISSING_WEBSITE_URL` | 400 | `websiteURL` field is required |
+| `ERROR_MISSING_PUBLIC_KEY` | 400 | `websitePublicKey` field is required |
+| `ERROR_MISSING_PROXY` | 400 | `proxy` field is required |
+| `ERROR_MISSING_WEBSITE_SUBDOMAIN` | 400 | `websiteSubdomain` field is required |
+| `ERROR_INVALID_EXTRA_DATA` | 400 | `data` field is not valid JSON |
+| `ERROR_INVALID_HEADERS` | 400 | `headers` field is not a valid JSON object |
+| `ERROR_MISSING_USER_AGENT` | 400 | User-Agent is required when `sec-ch-*` headers are provided |
+
+## Proxy Errors
+
+| Error Code | HTTP | Description |
+|------------|------|-------------|
+| `ERROR_INVALID_PROXY_PROTOCOL` | 400 | Protocol must be `http`, `socks4`, or `socks5` |
+| `ERROR_INVALID_PROXY_PORT` | 400 | Port must be between 1 and 65535 |
+| `ERROR_INVALID_PROXY_AUTH` | 400 | Proxy authentication (user:pass) is missing |
+| `ERROR_INVALID_PROXY_FORMAT` | 400 | Proxy string doesn't match expected format |
+| `ERROR_PROXY_CONNECTION` | 503 | Could not connect through the proxy |
+
+## Rate Limit Errors
+
+| Error Code | HTTP | Description |
+|------------|------|-------------|
+| `ERROR_RATE_LIMIT_EXCEEDED` | 429 | Daily or hourly quota exceeded |
+| `ERROR_THREAD_THRESHOLD_EXCEEDED` | 429 | Too many concurrent tasks for this user |
+
+## Task Errors
+
+| Error Code | HTTP | Description |
+|------------|------|-------------|
+| `ERROR_TASK_NOT_FOUND` | 404 | Task ID doesn't exist or has expired (60s TTL) |
+| `ERROR_TASK_EXCEPTION` | 500 | Internal error during task execution |
+| `ERROR_TASK_CANCELLED` | 500 | Task was cancelled due to an internal error |
+| `ERROR_TASK_TIMEOUT` | 504 | Task exceeded the 300-second total timeout |
+| `ERROR_SOLVE_TIMEOUT` | 504 | Solve phase exceeded the 120-second timeout |
+| `ERROR_CAPTCHA_UNSOLVABLE` | 403 | Failed to solve the CAPTCHA challenge |
+| `ERROR_PROCESSING_IMAGE` | 504 | Image classification timed out |
+
+## Service Errors
+
+| Error Code | HTTP | Description |
+|------------|------|-------------|
+| `ERROR_SERVICE_UNAVALIABLE` | 503 | Service is temporarily disabled |
+| `ERROR_TEMPLATE_NOT_FOUND` | 404 | No Arkose template found for this public key |
+| `ERROR_FINGERPRINT_UNAVAILABLE` | 503 | No fingerprints available in the database |
+| `ERROR_DATABASE_UNAVAILABLE` | 503 | MongoDB is temporarily unavailable |
+| `ERROR_INTERNAL_DATABASE` | 500 | Internal database error |
+
+## Handling Errors
+
+### Retryable Errors
+
+These errors are temporary and can be retried with backoff:
+
+- `ERROR_SERVICE_UNAVALIABLE`
+- `ERROR_DATABASE_UNAVAILABLE`
+- `ERROR_DATABASE_BALANCE`
+- `ERROR_FINGERPRINT_UNAVAILABLE`
+- `ERROR_PROXY_CONNECTION`
+- `ERROR_THREAD_THRESHOLD_EXCEEDED`
+- `ERROR_SOLVE_TIMEOUT`
+- `ERROR_PROCESSING_IMAGE`
+
+### Non-Retryable Errors
+
+These errors require fixing the request:
+
+- All validation errors (`ERROR_MISSING_*`, `ERROR_INVALID_*`)
+- `ERROR_KEY_DOES_NOT_EXIST`
+- `ERROR_ACCOUNT_SUSPENDED`
+- `ERROR_ZERO_BALANCE`
+- `ERROR_TASK_NOT_SUPPORTED`
+- `ERROR_TEMPLATE_NOT_FOUND`
+
+### Example Error Handling
+
+```python
+RETRYABLE = {
+    "ERROR_SERVICE_UNAVALIABLE",
+    "ERROR_DATABASE_UNAVAILABLE",
+    "ERROR_PROXY_CONNECTION",
+    "ERROR_THREAD_THRESHOLD_EXCEEDED",
+    "ERROR_SOLVE_TIMEOUT",
+    "ERROR_PROCESSING_IMAGE",
+}
+
+def create_task_safe(client_key, task, max_retries=3):
+    for attempt in range(max_retries):
+        resp = requests.post("https://api.funbypass.com/createTask", json={
+            "clientKey": client_key,
+            "task": task
+        })
+        data = resp.json()
+
+        if data.get("errorId", 0) == 0:
+            return data
+
+        error_code = data.get("errorCode", "")
+        if error_code in RETRYABLE:
+            time.sleep(2 ** attempt)
+            continue
+
+        raise Exception(f"{error_code}: {data.get('errorDescription')}")
+
+    raise Exception("Max retries exceeded")
+```

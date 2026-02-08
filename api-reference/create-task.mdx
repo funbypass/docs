@@ -1,0 +1,159 @@
+---
+title: Create Task
+description: "Submit a new CAPTCHA solving task."
+---
+
+## `POST /createTask`
+
+Creates a new FunCaptcha solving task and returns a task ID for polling.
+
+## Request Body
+
+```json
+{
+  "clientKey": "FUN-your-api-key",
+  "task": {
+    "type": "FunCaptchaTask",
+    "websiteURL": "https://example.com",
+    "websitePublicKey": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+    "websiteSubdomain": "client-api",
+    "proxy": "http://user:pass@ip:port",
+    "data": "{\"blob\": \"value\"}",
+    "enablePOW": true,
+    "headers": {
+      "user-agent": "Mozilla/5.0 ...",
+      "sec-ch-ua": "\"Chromium\";v=\"124\"",
+      "sec-ch-ua-platform": "\"Windows\"",
+      "sec-ch-ua-mobile": "?0",
+      "accept-language": "en-US,en;q=0.9",
+      "document-referrer": "https://example.com/",
+      "document-title": "Page Title"
+    }
+  }
+}
+```
+
+## Parameters
+
+### Root
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `clientKey` | string | Yes | Your API key (`FUN-` or `PKG-` prefix) |
+| `task` | object | Yes | Task configuration object |
+
+### Task Object
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `type` | string | Yes | Must be `FunCaptchaTask` |
+| `websiteURL` | string | Yes | URL of the target website |
+| `websitePublicKey` | string | Yes | Arkose public key (UUID format) |
+| `websiteSubdomain` | string | Yes | Arkose subdomain (e.g., `client-api`) |
+| `proxy` | string | Yes | Proxy in format `protocol://user:pass@ip:port` |
+| `data` | string | No | Extra data as JSON string (e.g., blob data) |
+| `enablePOW` | boolean | No | Enable Proof-of-Work solving (default: `true`) |
+| `headers` | object | No | Custom browser headers |
+
+### Headers Object
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `user-agent` | string | Required if `sec-ch-*` headers are set | Browser User-Agent string |
+| `sec-ch-ua` | string | No | Client Hints UA string |
+| `sec-ch-ua-platform` | string | No | Client Hints platform |
+| `sec-ch-ua-mobile` | string | No | Client Hints mobile flag |
+| `accept-language` | string | No | Accept-Language header |
+| `document-referrer` | string | No | Document referrer URL |
+| `document-title` | string | No | Document title |
+
+## Response
+
+### Success (200)
+
+```json
+{
+  "errorId": 0,
+  "taskId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "status": "created"
+}
+```
+
+### Service Unavailable (503)
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "ERROR_SERVICE_UNAVALIABLE",
+  "errorDescription": "Service is temporarily unavailable."
+}
+```
+
+## Common Errors
+
+| Error Code | HTTP | Description |
+|------------|------|-------------|
+| `ERROR_MISSING_REQUEST_DATA` | 400 | Request body is missing |
+| `ERROR_KEY_DOES_NOT_EXIST` | 404 | Invalid API key |
+| `ERROR_TASK_NOT_SUPPORTED` | 400 | Task type is not `FunCaptchaTask` |
+| `ERROR_INVALID_PUBLIC_KEY` | 400 | Public key is not a valid UUID |
+| `ERROR_MISSING_PROXY` | 400 | Proxy is required |
+| `ERROR_INVALID_PROXY_FORMAT` | 400 | Proxy format is invalid |
+| `ERROR_TEMPLATE_NOT_FOUND` | 404 | No template for this public key |
+| `ERROR_ZERO_BALANCE` | 402 | Insufficient balance |
+| `ERROR_THREAD_THRESHOLD_EXCEEDED` | 429 | Too many concurrent tasks |
+
+## Example
+
+<CodeGroup>
+```python Python
+import requests
+
+resp = requests.post("https://api.funbypass.com/createTask", json={
+    "clientKey": "FUN-your-api-key",
+    "task": {
+        "type": "FunCaptchaTask",
+        "websiteURL": "https://example.com",
+        "websitePublicKey": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+        "websiteSubdomain": "client-api",
+        "proxy": "http://user:pass@1.2.3.4:8080"
+    }
+})
+
+print(resp.json())
+```
+
+```javascript JavaScript
+const resp = await fetch("https://api.funbypass.com/createTask", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    clientKey: "FUN-your-api-key",
+    task: {
+      type: "FunCaptchaTask",
+      websiteURL: "https://example.com",
+      websitePublicKey: "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+      websiteSubdomain: "client-api",
+      proxy: "http://user:pass@1.2.3.4:8080",
+    },
+  }),
+});
+
+console.log(await resp.json());
+```
+
+```bash cURL
+curl -X POST https://api.funbypass.com/createTask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientKey": "FUN-your-api-key",
+    "task": {
+      "type": "FunCaptchaTask",
+      "websiteURL": "https://example.com",
+      "websitePublicKey": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+      "websiteSubdomain": "client-api",
+      "proxy": "http://user:pass@1.2.3.4:8080"
+    }
+  }'
+```
+</CodeGroup>

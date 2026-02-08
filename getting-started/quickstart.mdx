@@ -1,0 +1,158 @@
+---
+title: Quickstart
+description: "Solve your first CAPTCHA in minutes."
+---
+
+## Prerequisites
+
+- A FunBypass account — [sign up at app.funbypass.com](https://app.funbypass.com)
+- An API key (starts with `FUN-` or `PKG-`)
+- A working proxy (HTTP, SOCKS4, or SOCKS5)
+
+## Step 1: Create a Task
+
+Send a `POST` request to create a new solving task:
+
+<CodeGroup>
+```python Python
+import requests
+
+response = requests.post("https://api.funbypass.com/createTask", json={
+    "clientKey": "FUN-your-api-key",
+    "task": {
+        "type": "FunCaptchaTask",
+        "websiteURL": "https://example.com",
+        "websitePublicKey": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+        "websiteSubdomain": "client-api",
+        "proxy": "http://user:pass@ip:port"
+    }
+})
+
+data = response.json()
+task_id = data["taskId"]
+print(f"Task created: {task_id}")
+```
+
+```javascript JavaScript
+const response = await fetch("https://api.funbypass.com/createTask", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    clientKey: "FUN-your-api-key",
+    task: {
+      type: "FunCaptchaTask",
+      websiteURL: "https://example.com",
+      websitePublicKey: "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+      websiteSubdomain: "client-api",
+      proxy: "http://user:pass@ip:port",
+    },
+  }),
+});
+
+const data = await response.json();
+console.log("Task created:", data.taskId);
+```
+
+```bash cURL
+curl -X POST https://api.funbypass.com/createTask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientKey": "FUN-your-api-key",
+    "task": {
+      "type": "FunCaptchaTask",
+      "websiteURL": "https://example.com",
+      "websitePublicKey": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+      "websiteSubdomain": "client-api",
+      "proxy": "http://user:pass@ip:port"
+    }
+  }'
+```
+</CodeGroup>
+
+**Response:**
+
+```json
+{
+  "errorId": 0,
+  "taskId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "status": "created"
+}
+```
+
+## Step 2: Poll for the Result
+
+Wait a few seconds, then poll for the result:
+
+<CodeGroup>
+```python Python
+import time
+
+while True:
+    result = requests.get(f"https://api.funbypass.com/getTaskResult/{task_id}").json()
+
+    if result["status"] == "ready":
+        print(f"Token: {result['solution']['token']}")
+        break
+    elif result.get("errorId", 0) != 0:
+        print(f"Error: {result['errorCode']}")
+        break
+
+    time.sleep(3)
+```
+
+```javascript JavaScript
+async function pollResult(taskId) {
+  while (true) {
+    const res = await fetch(
+      `https://api.funbypass.com/getTaskResult/${taskId}`
+    );
+    const result = await res.json();
+
+    if (result.status === "ready") {
+      console.log("Token:", result.solution.token);
+      return result.solution.token;
+    }
+    if (result.errorId !== 0) {
+      throw new Error(result.errorCode);
+    }
+
+    await new Promise((r) => setTimeout(r, 3000));
+  }
+}
+
+await pollResult(data.taskId);
+```
+
+```bash cURL
+# Poll every 3 seconds
+curl https://api.funbypass.com/getTaskResult/TASK_ID_HERE
+```
+</CodeGroup>
+
+**Response (solved):**
+
+```json
+{
+  "errorId": 0,
+  "solution": {
+    "token": "arkose_token_string..."
+  },
+  "taskId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "status": "ready"
+}
+```
+
+## Step 3: Use the Token
+
+Use the returned `token` value in your target application where the Arkose/FunCaptcha token is required.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/getting-started/authentication">
+    Learn about API key types and authentication.
+  </Card>
+  <Card title="Task Lifecycle" icon="arrows-spin" href="/guides/task-lifecycle">
+    Understand the full task flow in detail.
+  </Card>
+</CardGroup>
