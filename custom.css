@@ -1,0 +1,18 @@
+:root {
+  --background: #fafafa;
+}
+
+.dark,
+[data-theme="dark"] {
+  --background: #0f0f0f;
+}
+
+body {
+  background-color: var(--background) !important;
+}
+
+#content-area,
+main,
+[data-radix-scroll-area-viewport] {
+  background-color: var(--background) !important;
+}
