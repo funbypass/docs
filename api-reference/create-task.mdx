@@ -1,11 +1,11 @@
 ---
 title: Create Task
-description: "Submit a new CAPTCHA solving task."
+description: "Submit a new interaction task."
 ---
 
 ## `POST /createTask`
 
-Creates a new FunCaptcha solving task and returns a task ID for polling.
+Creates a new FInteractions task and returns a task ID for status polling.
 
 ## Request Body
 
@@ -13,7 +13,7 @@ Creates a new FunCaptcha solving task and returns a task ID for polling.
 {
   "clientKey": "FUN-your-api-key",
   "task": {
-    "type": "FunCaptchaTask",
+    "type": "FInteractionsTask",
     "websiteURL": "https://example.com",
     "websitePublicKey": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
     "websiteSubdomain": "client-api",
@@ -46,13 +46,13 @@ Creates a new FunCaptcha solving task and returns a task ID for polling.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `type` | string | Yes | Must be `FunCaptchaTask` |
+| `type` | string | Yes | Must be `FInteractionsTask` |
 | `websiteURL` | string | Yes | URL of the target website |
-| `websitePublicKey` | string | Yes | Arkose public key (UUID format) |
-| `websiteSubdomain` | string | Yes | Arkose subdomain (e.g., `client-api`) |
+| `websitePublicKey` | string | Yes | Site key (UUID format) |
+| `websiteSubdomain` | string | Yes | Service subdomain (e.g., `client-api`) |
 | `proxy` | string | Yes | Proxy in format `protocol://user:pass@ip:port` |
 | `data` | string | No | Extra data as JSON string (e.g., blob data) |
-| `enablePOW` | boolean | No | Enable Proof-of-Work solving (default: `true`) |
+| `enablePOW` | boolean | No | Enable Proof-of-Work handling (default: `true`) |
 | `headers` | object | No | Custom browser headers |
 
 ### Headers Object
@@ -95,7 +95,7 @@ Creates a new FunCaptcha solving task and returns a task ID for polling.
 |------------|------|-------------|
 | `ERROR_MISSING_REQUEST_DATA` | 400 | Request body is missing |
 | `ERROR_KEY_DOES_NOT_EXIST` | 404 | Invalid API key |
-| `ERROR_TASK_NOT_SUPPORTED` | 400 | Task type is not `FunCaptchaTask` |
+| `ERROR_TASK_NOT_SUPPORTED` | 400 | Task type is not `FInteractionsTask` |
 | `ERROR_INVALID_PUBLIC_KEY` | 400 | Public key is not a valid UUID |
 | `ERROR_MISSING_PROXY` | 400 | Proxy is required |
 | `ERROR_INVALID_PROXY_FORMAT` | 400 | Proxy format is invalid |
@@ -112,7 +112,7 @@ import requests
 resp = requests.post("https://api.funbypass.com/createTask", json={
     "clientKey": "FUN-your-api-key",
     "task": {
-        "type": "FunCaptchaTask",
+        "type": "FInteractionsTask",
         "websiteURL": "https://example.com",
         "websitePublicKey": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
         "websiteSubdomain": "client-api",
@@ -130,7 +130,7 @@ const resp = await fetch("https://api.funbypass.com/createTask", {
   body: JSON.stringify({
     clientKey: "FUN-your-api-key",
     task: {
-      type: "FunCaptchaTask",
+      type: "FInteractionsTask",
       websiteURL: "https://example.com",
       websitePublicKey: "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
       websiteSubdomain: "client-api",
@@ -148,7 +148,7 @@ curl -X POST https://api.funbypass.com/createTask \
   -d '{
     "clientKey": "FUN-your-api-key",
     "task": {
-      "type": "FunCaptchaTask",
+      "type": "FInteractionsTask",
       "websiteURL": "https://example.com",
       "websitePublicKey": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
       "websiteSubdomain": "client-api",

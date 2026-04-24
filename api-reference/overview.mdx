@@ -21,7 +21,7 @@ Authentication is done via the `clientKey` field in the request body — no head
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/createTask` | Submit a new CAPTCHA solving task |
+| `POST` | `/createTask` | Submit a new interaction task |
 | `GET` | `/getTaskResult/{taskId}` | Poll for a task's result |
 | `POST` | `/getBalance` | Check your account balance |
 
@@ -48,7 +48,7 @@ All responses are JSON with a consistent structure:
 | `202` | Task is still processing |
 | `400` | Invalid request parameters |
 | `402` | Insufficient balance |
-| `403` | Forbidden (suspended, paused, unsolvable) |
+| `403` | Forbidden (suspended, paused, or task could not be completed) |
 | `404` | Resource not found (key, task, template) |
 | `429` | Rate limit or thread limit exceeded |
 | `503` | Service temporarily unavailable |

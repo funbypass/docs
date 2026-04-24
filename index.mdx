@@ -1,11 +1,11 @@
 ---
-title: FunBypass Solver API
-description: "Fast, reliable FunCaptcha solving — starting at $0.75/1k solves."
+title: FunBypass Interaction API
+description: "Task processing for FInteractions workflows — starting at $0.75/1k tasks."
 ---
 
 ## Welcome to FunBypass
 
-FunBypass is a high-performance CAPTCHA solving API built for developers. Submit a task, poll for the result, and get a valid token — it's that simple.
+FunBypass is a high-throughput API for handling FInteractions workflows. Submit a task, poll its status, and retrieve the result token.
 
 <CardGroup cols={2}>
   <Card
@@ -13,7 +13,7 @@ FunBypass is a high-performance CAPTCHA solving API built for developers. Submit
     icon="rocket"
     href="/getting-started/quickstart"
   >
-    Get your first CAPTCHA solved in under 5 lines of code.
+    Get your first task running in under 5 lines of code.
   </Card>
   <Card
     title="API Reference"
@@ -41,14 +41,14 @@ FunBypass is a high-performance CAPTCHA solving API built for developers. Submit
 ## Key Features
 
 <CardGroup cols={3}>
-  <Card title="Fast Solving" icon="bolt">
-    Average solve times under 10 seconds with parallel processing.
+  <Card title="Fast Turnaround" icon="bolt">
+    Average completion times under 10 seconds with parallel processing.
   </Card>
   <Card title="99.9% Uptime" icon="signal">
     Redundant infrastructure with real-time status monitoring.
   </Card>
   <Card title="Simple Pricing" icon="tag">
-    Pay-as-you-go at **$0.75 per 1,000 solves** or subscribe to a package.
+    Pay-as-you-go at **$0.75 per 1,000 tasks** or subscribe to a package.
   </Card>
 </CardGroup>
 
@@ -64,13 +64,13 @@ https://api.funbypass.com
 
 <Steps>
   <Step title="Create a Task">
-    Send a `POST /createTask` request with your API key, target site public key, proxy, and optional parameters.
+    Send a `POST /createTask` request with your API key, site key, proxy, and optional parameters.
   </Step>
-  <Step title="Poll for Result">
-    Use `GET /getTaskResult/{taskId}` to check the task status. The task will be `processing` until the CAPTCHA is solved.
+  <Step title="Poll for Status">
+    Use `GET /getTaskResult/{taskId}` to check the task status while it remains `processing`.
   </Step>
-  <Step title="Get Your Token">
-    Once the status is `ready`, the response includes the solved Arkose token you can use on the target site.
+  <Step title="Retrieve the Result Token">
+    Once the status is `ready`, the response includes the result token for that session.
   </Step>
 </Steps>
 

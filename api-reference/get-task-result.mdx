@@ -1,6 +1,6 @@
 ---
 title: Get Task Result
-description: "Poll for the result of a CAPTCHA solving task."
+description: "Poll for the status and result of a task."
 ---
 
 ## `GET /getTaskResult/{taskId}`
@@ -17,7 +17,7 @@ Retrieves the current status and result of a previously created task.
 
 ### Processing (202)
 
-The task is still being solved. Continue polling.
+The task is still processing. Continue polling.
 
 ```json
 {
@@ -27,9 +27,9 @@ The task is still being solved. Continue polling.
 }
 ```
 
-### Solved Successfully (200)
+### Completed Successfully (200)
 
-The CAPTCHA has been solved. The `solution.token` contains the Arkose token.
+The task finished successfully. The `solution.token` contains the result token.
 
 ```json
 {
@@ -44,13 +44,13 @@ The CAPTCHA has been solved. The `solution.token` contains the Arkose token.
 
 ### Completed with Error (200)
 
-The task completed but failed to solve.
+The task completed without a usable result token.
 
 ```json
 {
   "errorId": 1,
   "errorCode": "ERROR_CAPTCHA_UNSOLVABLE",
-  "errorDescription": "Failed to solve the CAPTCHA challenge.",
+  "errorDescription": "The interaction could not be completed.",
   "taskId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
   "status": "ready"
 }
@@ -92,8 +92,8 @@ The task encountered a fatal error.
 | `errorDescription` | string | Human-readable error message |
 | `taskId` | string | The task UUID |
 | `status` | string | `processing`, `ready`, or `failure` |
-| `solution` | object | Contains the solved token (only on success) |
-| `solution.token` | string | The Arkose/FunCaptcha token |
+| `solution` | object | Contains the result token (only on success) |
+| `solution.token` | string | The result token for the completed task |
 
 ## Polling Strategy
 
@@ -129,7 +129,7 @@ def get_result(task_id, interval=0.5, max_attempts=600):
 |------------|------|-------------|
 | `ERROR_TASK_NOT_FOUND` | 404 | Task expired or doesn't exist |
 | `ERROR_TASK_EXCEPTION` | 403 | Internal task failure |
-| `ERROR_CAPTCHA_UNSOLVABLE` | 403 | Could not solve the challenge |
+| `ERROR_CAPTCHA_UNSOLVABLE` | 403 | The interaction could not be completed |
 | `ERROR_PROXY_CONNECTION` | 503 | Proxy connection failed |
-| `ERROR_SOLVE_TIMEOUT` | 504 | Solve exceeded 120 seconds |
+| `ERROR_SOLVE_TIMEOUT` | 504 | Processing exceeded 120 seconds |
 | `ERROR_TASK_TIMEOUT` | 504 | Task exceeded 300 seconds |

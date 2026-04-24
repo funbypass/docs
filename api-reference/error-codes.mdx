@@ -31,7 +31,7 @@ When an error occurs, the response includes:
 | Error Code | HTTP | Description |
 |------------|------|-------------|
 | `ERROR_MISSING_REQUEST_DATA` | 400 | Request payload is missing or empty |
-| `ERROR_TASK_NOT_SUPPORTED` | 400 | Task type is not `FunCaptchaTask` |
+| `ERROR_TASK_NOT_SUPPORTED` | 400 | Task type is not `FInteractionsTask` |
 | `ERROR_INVALID_PUBLIC_KEY` | 400 | Public key is not a valid UUID |
 | `ERROR_MISSING_WEBSITE_URL` | 400 | `websiteURL` field is required |
 | `ERROR_MISSING_PUBLIC_KEY` | 400 | `websitePublicKey` field is required |
@@ -66,8 +66,8 @@ When an error occurs, the response includes:
 | `ERROR_TASK_EXCEPTION` | 500 | Internal error during task execution |
 | `ERROR_TASK_CANCELLED` | 500 | Task was cancelled due to an internal error |
 | `ERROR_TASK_TIMEOUT` | 504 | Task exceeded the 300-second total timeout |
-| `ERROR_SOLVE_TIMEOUT` | 504 | Solve phase exceeded the 120-second timeout |
-| `ERROR_CAPTCHA_UNSOLVABLE` | 403 | Failed to solve the CAPTCHA challenge |
+| `ERROR_SOLVE_TIMEOUT` | 504 | Processing phase exceeded the 120-second timeout |
+| `ERROR_CAPTCHA_UNSOLVABLE` | 403 | The interaction could not be completed |
 | `ERROR_PROCESSING_IMAGE` | 504 | Processing timed out |
 
 ## Service Errors
@@ -75,7 +75,7 @@ When an error occurs, the response includes:
 | Error Code | HTTP | Description |
 |------------|------|-------------|
 | `ERROR_SERVICE_UNAVALIABLE` | 503 | Service is temporarily disabled |
-| `ERROR_TEMPLATE_NOT_FOUND` | 404 | No Arkose template found for this public key |
+| `ERROR_TEMPLATE_NOT_FOUND` | 404 | No FInteractions template found for this public key |
 | `ERROR_FINGERPRINT_UNAVAILABLE` | 503 | Service temporarily unavailable |
 | `ERROR_DATABASE_UNAVAILABLE` | 503 | Service temporarily unavailable |
 | `ERROR_INTERNAL_DATABASE` | 500 | Internal server error |

@@ -16,8 +16,8 @@ Package-based keys (`PKG-`) have quotas depending on the package type:
 | Package Type | Quota |
 |-------------|-------|
 | `unlimited` | No limit during subscription |
-| `daily` | Fixed solves per day (resets at midnight UTC) |
-| `hourly` | Fixed solves per hour (resets each hour) |
+| `daily` | Fixed tasks per day (resets at midnight UTC) |
+| `hourly` | Fixed tasks per hour (resets each hour) |
 
 Exceeding your quota returns `ERROR_RATE_LIMIT_EXCEEDED`.
 
@@ -25,7 +25,7 @@ Exceeding your quota returns `ERROR_RATE_LIMIT_EXCEEDED`.
 
 For balance-based keys (`FUN-`):
 
-- Each solve costs **$0.00075** ($0.75 per 1,000)
+- Each task costs **$0.00075** ($0.75 per 1,000)
 - Balance is deducted when the task starts
 - Failed tasks are **automatically refunded**
 - Use `POST /getBalance` to check your current balance

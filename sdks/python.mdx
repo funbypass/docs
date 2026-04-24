@@ -44,9 +44,9 @@ class FunBypass:
         enable_pow: bool = True,
         headers: dict = None,
     ) -> str:
-        """Create a new solving task. Returns task ID."""
+        """Create a new task. Returns task ID."""
         task = {
-            "type": "FunCaptchaTask",
+            "type": "FInteractionsTask",
             "websiteURL": website_url,
             "websitePublicKey": website_public_key,
             "websiteSubdomain": website_subdomain,
@@ -69,7 +69,7 @@ class FunBypass:
         return result["taskId"]
 
     def get_task_result(self, task_id: str, interval: float = 0.5, timeout: int = 300) -> str:
-        """Poll for task result. Returns the solved token."""
+        """Poll for task result. Returns the result token."""
         elapsed = 0
         while elapsed < timeout:
             resp = requests.get(f"{self.BASE_URL}/getTaskResult/{task_id}")
@@ -88,8 +88,8 @@ class FunBypass:
 
         raise TimeoutError(f"Task {task_id} did not complete within {timeout}s")
 
-    def solve(self, **kwargs) -> str:
-        """Create a task and wait for the result. Returns the token."""
+    def run_task(self, **kwargs) -> str:
+        """Create a task and wait for the result. Returns the result token."""
         task_id = self.create_task(**kwargs)
         return self.get_task_result(task_id)
 
@@ -100,14 +100,14 @@ client = FunBypass("FUN-your-api-key")
 # Check balance
 print(f"Balance: ${client.get_balance()}")
 
-# Solve a CAPTCHA
-token = client.solve(
+# Run a task
+result_token = client.run_task(
     website_url="https://example.com",
     website_public_key="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
     website_subdomain="client-api",
     proxy="http://user:pass@1.2.3.4:8080",
 )
-print(f"Token: {token}")
+print(f"Result token: {result_token}")
 ```
 
 ## Async Example
@@ -125,11 +125,11 @@ class AsyncFunBypass:
     def __init__(self, client_key: str):
         self.client_key = client_key
 
-    async def solve(self, session: aiohttp.ClientSession, **task_params) -> str:
+    async def run_task(self, session: aiohttp.ClientSession, **task_params) -> str:
         # Create task
         async with session.post(f"{self.BASE_URL}/createTask", json={
             "clientKey": self.client_key,
-            "task": {"type": "FunCaptchaTask", **task_params},
+            "task": {"type": "FInteractionsTask", **task_params},
         }) as resp:
             data = await resp.json()
             if data["errorId"] != 0:
@@ -153,14 +153,14 @@ class AsyncFunBypass:
 async def main():
     client = AsyncFunBypass("FUN-your-api-key")
     async with aiohttp.ClientSession() as session:
-        token = await client.solve(
+        result_token = await client.run_task(
             session,
             websiteURL="https://example.com",
             websitePublicKey="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
             websiteSubdomain="client-api",
             proxy="http://user:pass@1.2.3.4:8080",
         )
-        print(f"Token: {token}")
+        print(f"Result token: {result_token}")
 
 asyncio.run(main())
 ```

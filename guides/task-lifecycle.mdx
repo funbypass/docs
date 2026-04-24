@@ -1,11 +1,11 @@
 ---
 title: Task Lifecycle
-description: "How a CAPTCHA solving task flows from creation to completion."
+description: "How an interaction task moves from creation to completion."
 ---
 
 ## Overview
 
-Every solve request follows a predictable lifecycle. Understanding this flow helps you build robust integrations and handle edge cases.
+Every task request follows a predictable lifecycle. Understanding this flow helps you build robust integrations and handle edge cases.
 
 ## Task Flow
 
@@ -16,22 +16,22 @@ Every solve request follows a predictable lifecycle. Understanding this flow hel
   <Step title="Validation">
     The server performs deep validation:
     - API key and account status
-    - Task type must be `FunCaptchaTask`
-    - Public key must be a valid UUID
+    - Task type must be `FInteractionsTask`
+    - Site key must be a valid UUID
     - Proxy format and port validation
     - Thread limit check
   </Step>
   <Step title="Session Initialization">
-    A session is created through your proxy. The system detects the proxy's geolocation to set the correct timezone and language, then generates the initial Arkose token.
+    A session is created through your proxy. The system detects the proxy's geolocation to set the correct timezone and language, then generates the initial session token.
   </Step>
-  <Step title="Silent Pass Check">
-    If the Arkose token contains `sup=1`, no challenge is required — the token is returned immediately. This is the fastest path.
+  <Step title="Immediate Completion Check">
+    If the session token contains `sup=1`, no interactive step is required and the result token is returned immediately. This is the fastest path.
   </Step>
-  <Step title="Challenge Solving">
-    If a challenge is required, the system parses the challenge type, variant, and number of waves, then solves each wave until completion or timeout.
+  <Step title="Interactive Processing">
+    If an interactive step is required, the system parses the flow type, variant, and number of rounds, then processes each round until completion or timeout.
   </Step>
   <Step title="Result Available">
-    Once solved, the result is stored with a 120-second TTL. Poll `GET /getTaskResult/{taskId}` to retrieve it.
+    Once complete, the result is stored with a 120-second TTL. Poll `GET /getTaskResult/{taskId}` to retrieve it.
   </Step>
 </Steps>
 
@@ -40,7 +40,7 @@ Every solve request follows a predictable lifecycle. Understanding this flow hel
 | Status | Description |
 |--------|-------------|
 | `created` | Task accepted and queued |
-| `processing` | Task is being solved |
+| `processing` | Task is running |
 | `ready` | Task completed (check `errorId` for success/failure) |
 | `failure` | Task failed with an error |
 
@@ -49,11 +49,11 @@ Every solve request follows a predictable lifecycle. Understanding this flow hel
 | Phase | Timeout |
 |-------|---------|
 | Total task | 300 seconds |
-| Solve phase | 120 seconds |
+| Processing phase | 120 seconds |
 | Result TTL | 120 seconds after completion |
 
 <Warning>
-  Results expire 120 seconds after completion. Make sure to poll frequently enough to retrieve your token before it expires.
+  Results expire 120 seconds after completion. Make sure to poll frequently enough to retrieve your result token before it expires.
 </Warning>
 
 ## Balance & Refunds
@@ -61,7 +61,7 @@ Every solve request follows a predictable lifecycle. Understanding this flow hel
 For balance-based users (`FUN-` keys):
 
 - Balance is deducted when the task starts processing
-- If the task fails for any reason (proxy error, timeout, unsolvable), the balance is **automatically refunded**
+- If the task fails for any reason (proxy error, timeout, or incomplete interaction), the balance is **automatically refunded**
 
 ## Polling Best Practices
 
@@ -73,7 +73,7 @@ For balance-based users (`FUN-` keys):
 import time
 import requests
 
-def solve_captcha(client_key, task_params):
+def run_task(client_key, task_params):
     # Create task
     resp = requests.post("https://api.funbypass.com/createTask", json={
         "clientKey": client_key,

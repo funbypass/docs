@@ -1,6 +1,6 @@
 ---
 title: Quickstart
-description: "Solve your first CAPTCHA in minutes."
+description: "Run your first task in minutes."
 ---
 
 ## Prerequisites
@@ -11,7 +11,7 @@ description: "Solve your first CAPTCHA in minutes."
 
 ## Step 1: Create a Task
 
-Send a `POST` request to create a new solving task:
+Send a `POST` request to create a new task:
 
 <CodeGroup>
 ```python Python
@@ -20,7 +20,7 @@ import requests
 response = requests.post("https://api.funbypass.com/createTask", json={
     "clientKey": "FUN-your-api-key",
     "task": {
-        "type": "FunCaptchaTask",
+        "type": "FInteractionsTask",
         "websiteURL": "https://example.com",
         "websitePublicKey": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
         "websiteSubdomain": "client-api",
@@ -40,7 +40,7 @@ const response = await fetch("https://api.funbypass.com/createTask", {
   body: JSON.stringify({
     clientKey: "FUN-your-api-key",
     task: {
-      type: "FunCaptchaTask",
+      type: "FInteractionsTask",
       websiteURL: "https://example.com",
       websitePublicKey: "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
       websiteSubdomain: "client-api",
@@ -59,7 +59,7 @@ curl -X POST https://api.funbypass.com/createTask \
   -d '{
     "clientKey": "FUN-your-api-key",
     "task": {
-      "type": "FunCaptchaTask",
+      "type": "FInteractionsTask",
       "websiteURL": "https://example.com",
       "websitePublicKey": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
       "websiteSubdomain": "client-api",
@@ -91,7 +91,7 @@ while True:
     result = requests.get(f"https://api.funbypass.com/getTaskResult/{task_id}").json()
 
     if result["status"] == "ready":
-        print(f"Token: {result['solution']['token']}")
+        print(f"Result token: {result['solution']['token']}")
         break
     elif result.get("errorId", 0) != 0:
         print(f"Error: {result['errorCode']}")
@@ -109,7 +109,7 @@ async function pollResult(taskId) {
     const result = await res.json();
 
     if (result.status === "ready") {
-      console.log("Token:", result.solution.token);
+      console.log("Result token:", result.solution.token);
       return result.solution.token;
     }
     if (result.errorId !== 0) {
@@ -129,22 +129,22 @@ curl https://api.funbypass.com/getTaskResult/TASK_ID_HERE
 ```
 </CodeGroup>
 
-**Response (solved):**
+**Response (ready):**
 
 ```json
 {
   "errorId": 0,
   "solution": {
-    "token": "arkose_token_string..."
+    "token": "session_result_token..."
   },
   "taskId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
   "status": "ready"
 }
 ```
 
-## Step 3: Use the Token
+## Step 3: Use the Result Token
 
-Use the returned `token` value in your target application where the Arkose/FunCaptcha token is required.
+Use the returned `token` value where the target flow expects the FInteractions result token.
 
 ## Next Steps
 

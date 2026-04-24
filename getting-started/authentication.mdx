@@ -11,8 +11,8 @@ FunBypass uses API keys for authentication. Your key is passed in the request bo
 
 | Prefix | Type | Description |
 |--------|------|-------------|
-| `FUN-` | Balance-based | Pay-per-solve at $0.75/1,000 solves. Balance is deducted per task. |
-| `PKG-` | Package-based | Subscription packages with daily/hourly quotas or unlimited solves. |
+| `FUN-` | Balance-based | Pay-per-task at $0.75/1,000 tasks. Balance is deducted per task. |
+| `PKG-` | Package-based | Subscription packages with daily/hourly quotas or unlimited tasks. |
 
 ### Getting Your API Key
 
@@ -44,7 +44,7 @@ The server validates your key and checks:
 
 ## Balance-Based Keys (`FUN-`)
 
-- **Cost:** $0.75 per 1,000 solves ($0.00075 per solve)
+- **Cost:** $0.75 per 1,000 tasks ($0.00075 per task)
 - Balance is deducted when a task starts processing
 - If the task fails, the balance is automatically refunded
 - Check your balance via the [`POST /getBalance`](/api-reference/get-balance) endpoint
@@ -55,9 +55,9 @@ Packages come in several types:
 
 | Type | Description |
 |------|-------------|
-| `unlimited` | No solve limit during the subscription period |
-| `daily` | Fixed number of solves per day, resets daily |
-| `hourly` | Fixed number of solves per hour, resets hourly |
+| `unlimited` | No task limit during the subscription period |
+| `daily` | Fixed number of tasks per day, resets daily |
+| `hourly` | Fixed number of tasks per hour, resets hourly |
 
 Package status can be `active`, `paused`, or `expired`. Only active packages can create tasks.
 
@@ -78,7 +78,7 @@ If authentication fails, you'll receive one of these errors:
 
 <CardGroup cols={2}>
   <Card title="Create a Task" icon="plus" href="/api-reference/create-task">
-    Start solving CAPTCHAs with the createTask endpoint.
+    Start with the createTask endpoint.
   </Card>
   <Card title="Check Balance" icon="wallet" href="/api-reference/get-balance">
     Query your current balance programmatically.
